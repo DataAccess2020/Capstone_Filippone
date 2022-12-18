@@ -4,4 +4,4 @@ library(tidyverse)
 
 # Twitter authentication for developer account.
 auth <- rtweet_app()
-auth_save(auth, "Lara") 
+auth_save(auth, "Lara")
