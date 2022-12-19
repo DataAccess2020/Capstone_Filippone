@@ -47,7 +47,7 @@ tweets_right$full_text <- gsub("([0-9])","", tweets_right$full_text)
 tokens_right <- tibble(text = tweets_right$full_text) %>%
   unnest_tokens(word, text) %>%
   dplyr::anti_join(stop_words_ita)%>%
-  count(word, sort = TRUE)
+  count(word, sort = TRUE) 
 
 tokens_right_save<-sapply(tokens_right, as.character)
 write.csv(tokens_right_save, "tokens_right.csv",
