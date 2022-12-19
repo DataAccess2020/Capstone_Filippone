@@ -5,7 +5,7 @@ tweets_left<-get_timeline(user=left_pol$screen_name,
 
 tweets_right<-get_timeline(user=right_pol$screen_name, n=500,
                            verbose=T, parse=T, Sys.sleep(1))
- 
+  
 # And saving the two data frames.
 tweets_left_save<-sapply(tweets_left, as.character)
 write.csv(tweets_left_save, "tweets_left.csv",
