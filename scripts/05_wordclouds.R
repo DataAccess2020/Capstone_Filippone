@@ -4,10 +4,10 @@
 # visualization of the most recurring words.
 library(wordcloud2)
 
-cloud_left2<-wordcloud2(data=tokens_left, size=1,
-                        color='random-dark', shuffle=F)
+cloud_left2<-wordcloud2(data=tokens_left, size=0.5, shuffle = F,
+                        color='random-dark')
 print(cloud_left2)
 
-cloud_right2<-wordcloud2(data=tokens_right, size=1,
-                         color='random-dark', shuffle=F)
+cloud_right2<-wordcloud2(data=tokens_right, size=0.5, shuffle = F,
+                         color='random-dark')
 print(cloud_right2)
