@@ -1,19 +1,13 @@
 # Now we can create wordclouds that show which are the mostly used words
 # for left and right-wing politicians.
-library(wordcloud)
-library(RColorBrewer)
+# We are going to use the "wordcloud2" package, which offers a good
+# visualization of the most recurring words.
 library(wordcloud2)
 
-left_cloud<-wordcloud(words=tokens_left$word,freq=tokens_left$n,
-                      scale=c(1,.5), min.freq=242,max.words=Inf,
-                      random.order=TRUE, random.color=FALSE, rot.per=.1,
-                      colors=brewer.pal(max(3,ncol(tokens_left)),"Dark2"),
-                      ordered.colors=FALSE,use.r.layout=FALSE,
-                      fixed.asp=TRUE)
-right_cloud<-wordcloud(words=tokens_right$word,freq=tokens_right$n,
-                       scale=c(1,.5),min.freq=282,max.words=Inf,
-                       random.order=TRUE, random.color=FALSE,
-                       rot.per=.1,
-                       colors=brewer.pal(max(3,ncol(tokens_right)),
-                                         "Dark2"),ordered.colors=FALSE,
-                       use.r.layout=FALSE,fixed.asp=TRUE)
+cloud_left2<-wordcloud2(data=tokens_left, size=1,
+                        color='random-dark', shuffle=F)
+print(cloud_left2)
+
+cloud_right2<-wordcloud2(data=tokens_right, size=1,
+                         color='random-dark', shuffle=F)
+print(cloud_right2)
