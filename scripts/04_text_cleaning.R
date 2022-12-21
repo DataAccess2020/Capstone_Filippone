@@ -6,14 +6,15 @@ library(stylo)
 
 # We start with the tweets of left-wing politicians. First we clean the
 # text from hyperlinks, mentions, punctuation and so on.
-tweets_left$full_text <- as.character(tweets_left$full_text)
+tweets_left$full_text<- as.character(tweets_left$full_text)
+tweets_left$full_text<- str_replace_all(tweets_left$full_text, "[\'’]", "' ")
 tweets_left$full_text<- gsub("\\$", "", tweets_left$full_text) 
-tweets_left$full_text <- gsub("@\\w+", "", tweets_left$full_text)
-tweets_left$full_text <- gsub("[[:punct:]]","", tweets_left$full_text)
-tweets_left$full_text <- gsub("http\\w+", "", tweets_left$full_text)
-tweets_left$full_text <- gsub("[ |\t]{2,}", "", tweets_left$full_text)
-tweets_left$full_text <- gsub("^ ", "", tweets_left$full_text)
-tweets_left$full_text <- gsub(" $", "", tweets_left$full_text)
+tweets_left$full_text<- gsub("@\\w+", "", tweets_left$full_text)
+tweets_left$full_text<- gsub("[[:punct:]]","", tweets_left$full_text)
+tweets_left$full_text<- gsub("http\\w+", "", tweets_left$full_text)
+tweets_left$full_text<-gsub("[ |\t]{2,}", "", tweets_left$full_text)
+tweets_left$full_text<- gsub("^ ", "", tweets_left$full_text)
+tweets_left$full_text<- gsub(" $", "", tweets_left$full_text)
 tweets_left$full_text<- gsub("RT","",tweets_left$full_text)
 tweets_left$full_text <- gsub("href", "", tweets_left$full_text)
 tweets_left$full_text <- gsub("([0-9])","", tweets_left$full_text)
@@ -33,16 +34,17 @@ write.csv(tokens_left_save, "tokens_left.csv",
 
 # Repeating the process for right-wing politicians.
 tweets_right$full_text <- as.character(tweets_right$full_text)
+tweets_right$full_text<- str_replace_all(tweets_right$full_text, "[\'’]", "' ")
 tweets_right$full_text<- gsub("\\$", "", tweets_right$full_text) 
-tweets_right$full_text <- gsub("@\\w+", "", tweets_right$full_text)
-tweets_right$full_text <- gsub("[[:punct:]]","", tweets_right$full_text)
-tweets_right$full_text <- gsub("http\\w+", "", tweets_right$full_text)
-tweets_right$full_text <- gsub("[ |\t]{2,}", "", tweets_right$full_text)
-tweets_right$full_text <- gsub("^ ", "", tweets_right$full_text)
-tweets_right$full_text <- gsub(" $", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("@\\w+", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("[[:punct:]]","", tweets_right$full_text)
+tweets_right$full_text<- gsub("http\\w+", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("[ |\t]{2,}", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("^ ", "", tweets_right$full_text)
+tweets_right$full_text<- gsub(" $", "", tweets_right$full_text)
 tweets_right$full_text<- gsub("RT","",tweets_right$full_text)
-tweets_right$full_text <- gsub("href", "", tweets_right$full_text)
-tweets_right$full_text <- gsub("([0-9])","", tweets_right$full_text)
+tweets_right$full_text<- gsub("href", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("([0-9])","", tweets_right$full_text)
 
 tokens_right <- tibble(text = tweets_right$full_text) %>%
   unnest_tokens(word, text) %>%
