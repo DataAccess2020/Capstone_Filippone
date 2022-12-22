@@ -29,7 +29,7 @@ tokens_left <- tibble(text = tweets_left$full_text) %>%
   count(word, sort = TRUE)
 
 tokens_left_save<-sapply(tokens_left, as.character)
-write.csv(tokens_left_save, "tokens_left.csv",
+write.csv(tokens_left_save, "Tokens_left.csv",
           row.names = F) 
 
 # Repeating the process for right-wing politicians.
@@ -52,5 +52,5 @@ tokens_right <- tibble(text = tweets_right$full_text) %>%
   count(word, sort = TRUE) 
 
 tokens_right_save<-sapply(tokens_right, as.character)
-write.csv(tokens_right_save, "tokens_right.csv",
+write.csv(tokens_right_save, "Tokens_right.csv",
           row.names = F) 
