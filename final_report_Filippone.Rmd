@@ -1,0 +1,194 @@
+---
+title: "Italian politicians on Twitter"
+subtitle: "A comparison between left and right-wing"
+author: "Lara Filippone"
+date: "2022-12-22"
+output: html_document
+---
+
+Link to GitHub repo: https://github.com/DataAccess2020/Capstone_Filippone
+GitHub insights: 60 commits, 4 pull requests.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This study aims at analyzing the communication of Italian politicians on social media and takes into consideration Twitter. In particular, by scraping tweets from both left and right-wing politicians, I tried to understand whether there are differences in the frequency of tweets and in the topics covered by the two groups. I decided to narrow it down to tweets published in 2022, since this was a time span dense of events, including the electoral campaign.
+
+## Creation of two lists of Twitter accounts
+
+In order to gather Twitter accounts of left and right-wing politicians, I first connected to my Twitter developer account, then I created two lists:
+
+The first list contains information about 40 accounts from left-wing politicians. I took into account politicians from the following parties: "Partito Democratico", "Sinistra Italiana", "Europa Verde", "Articolo Uno".
+
+The second list contains information about 48 accounts from right-wing politicians. I took into account politicians from the following parties: "Fratelli d'Italia", "Forza Italia", "Lega per Salvini Premier".
+
+```{r, results='hide'}
+library(rtweet)
+library(tidyverse)
+
+right_pol = lists_members(list_id = "1602397184510595097", slug = NULL, owner_user = NULL, n = 100, cursor = "-1", token = NULL, retryonratelimit = NULL, verbose = TRUE, parse = TRUE)
+
+left_pol= lists_members(list_id = "1602410029268799501", slug = NULL, owner_user = NULL, n = 100, cursor = "-1", token = NULL, retryonratelimit = NULL, verbose = TRUE, parse = TRUE)
+```
+
+## Scraping of tweets from 2022
+
+Once I got the lists of the accounts I needed, I was able to scrape the tweets I was interested in using the "rtweet" package. I got the 500 last tweets that every politician published in 2022. Then I stored the tweets in two separate .csv files.
+
+```{r, results='hide'}
+tweets_left<-get_timeline(user=left_pol$screen_name,
+                          n=500, verbose=T, parse=T, Sys.sleep(1))%>%
+  dplyr::filter(created_at>"2022-01-01"
+                & created_at<="2022-12-22")
+
+tweets_right<-get_timeline(user=right_pol$screen_name, n=500,
+                           verbose=T, parse=T, Sys.sleep(1))%>%
+  dplyr::filter(created_at>"2022-01-01"
+                & created_at<="2022-12-22")
+
+tweets_left_save<-sapply(tweets_left, as.character)
+write.csv(tweets_left_save, "Tweets_left.csv",
+          row.names = F) 
+
+tweets_right_save<-sapply(tweets_right, as.character)
+write.csv(tweets_right_save, "Tweets_right.csv",
+          row.names = F)
+```
+
+## Frequency of the tweets
+
+One first thing I thought would be interesting to analyze is whether in 2022 there were differences in the frequency of tweets. To do so, I plotted two graphs showing how many tweets were published from January to December 2022 from each of the two political groups.
+
+```{r, echo=FALSE}
+freq_left<-ts_plot(tweets_left, by = "months" )+
+  ggplot2::theme_minimal() +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+  ggplot2::labs(x = NULL, y = NULL,
+    title = "Frequency of tweets from left-wing Italian politicians",
+    subtitle = "Year 2022")
+freq_left
+```
+
+As we can see from the graph, the curve is more or less stable until the end of July, that's to say the moment when the previous government fell and the electoral campaign started. From this moment on, there was a consistent rise in the number of tweets posted, until September, the month in which the elections took place. After the elections, we can observe a significant decrease in the number of tweets, which started to increase again only towards the beginning of October.
+
+```{r, echo=FALSE}
+freq_right<-ts_plot(tweets_right, by = "months" )+
+  ggplot2::theme_minimal() +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+  ggplot2::labs(x = NULL, y = NULL,
+    title = "Frequency of tweets from right-wing Italian politicians",
+    subtitle = "Year 2022")
+freq_right
+```
+
+We observe a different situation for right-wing politicians: the curve is stable until the beginning of the electoral campaign, when a huge increase in the frequency of tweets was registered. However, after the elections in September there wasn't a decrease, but rather a time span in which the number of tweets remained stable, and then continued to increase until the end of the year.
+
+## Text cleaning
+
+Afterwards, I performed a content analysis of the tweets, to understand what are the most cited topics for the two groups of politicians. To do so, I had to use regular expressions to clean the text from punctuation, mentions, emojis and so on. Also, I had to exclude all Italian stopwords from the text, in order to keep only the words which were useful for my analysis.
+
+After cleaning the text, I created two tables, one for each group of politicians, showing how many times each word had been used.
+
+```{r, results='hide'}
+library(stopwords)
+library(tidytext)
+library(stringr)
+library(stylo)
+
+tweets_left$full_text<- as.character(tweets_left$full_text)
+tweets_left$full_text<- str_replace_all(tweets_left$full_text, "[\'’]", "' ")
+tweets_left$full_text<- gsub("\\$", "", tweets_left$full_text) 
+tweets_left$full_text<- gsub("@\\w+", "", tweets_left$full_text)
+tweets_left$full_text<- gsub("[[:punct:]]","", tweets_left$full_text)
+tweets_left$full_text<- gsub("http\\w+", "", tweets_left$full_text)
+tweets_left$full_text<-gsub("[ |\t]{2,}", "", tweets_left$full_text)
+tweets_left$full_text<- gsub("^ ", "", tweets_left$full_text)
+tweets_left$full_text<- gsub(" $", "", tweets_left$full_text)
+tweets_left$full_text<- gsub("RT","",tweets_left$full_text)
+tweets_left$full_text <- gsub("href", "", tweets_left$full_text)
+tweets_left$full_text <- gsub("([0-9])","", tweets_left$full_text)
+
+stop_words_ita<-tibble(word=stopwords("it"))
+
+tokens_left <- tibble(text = tweets_left$full_text) %>%
+  unnest_tokens(word, text) %>%
+  dplyr::anti_join(stop_words_ita)%>%
+  count(word, sort = TRUE)
+
+tokens_left_save<-sapply(tokens_left, as.character)
+write.csv(tokens_left_save, "Tokens_left.csv",
+          row.names = F)
+
+tweets_right$full_text <- as.character(tweets_right$full_text)
+tweets_right$full_text<- str_replace_all(tweets_right$full_text, "[\'’]", "' ")
+tweets_right$full_text<- gsub("\\$", "", tweets_right$full_text) 
+tweets_right$full_text<- gsub("@\\w+", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("[[:punct:]]","", tweets_right$full_text)
+tweets_right$full_text<- gsub("http\\w+", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("[ |\t]{2,}", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("^ ", "", tweets_right$full_text)
+tweets_right$full_text<- gsub(" $", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("RT","",tweets_right$full_text)
+tweets_right$full_text<- gsub("href", "", tweets_right$full_text)
+tweets_right$full_text<- gsub("([0-9])","", tweets_right$full_text)
+
+tokens_right <- tibble(text = tweets_right$full_text) %>%
+  unnest_tokens(word, text) %>%
+  dplyr::anti_join(stop_words_ita)%>%
+  count(word, sort = TRUE) 
+
+tokens_right_save<-sapply(tokens_right, as.character)
+write.csv(tokens_right_save, "Tokens_right.csv",
+          row.names = F) 
+```
+
+## Word clouds showing the most used words
+
+Since word clouds are a more intuitive way of showing the most used words, I created one for left-wing politicians and one for right-wing politicians.
+
+```{r}
+library(wordcloud2)
+
+cloud_left2<-wordcloud2(data=tokens_left, size=0.35, shuffle = F,
+                        color='random-dark') %>%
+  htmlwidgets::prependContent(htmltools::tags$h1("Top words in tweets by left-wing italian politicians")) 
+
+print(cloud_left2)
+```
+
+Among the most frequently used words, we find generic terms we would expect to find in tweets from Italian politicians, like "Italia" (Italy), "governo" (government), "oggi" (today). We also find a lot of mentions of the political opponents: the word "destra" (right-wing) was cited much more frequently than "sinistra" (left-wing). 
+
+It is interesting how much left-wing politicians have used the term "covid", which is the 4th word in terms of frequency. Also "Bollettino" (bulletin), a term strictly connected to the pandemic, is the 6th word in terms of frequency.
+
+Finally, it is worth noting that the word "diritti" (rights) has been mentioned a lot by left-wing politicians, being the 36th most used term.
+
+```{r}
+cloud_right2<-wordcloud2(data=tokens_right, size=0.35, shuffle = F, color='random-dark')%>%
+  htmlwidgets::prependContent(htmltools::tags$h1("Top words in tweets by right-wing italian politicians")) 
+
+print(cloud_right2)
+```
+
+In tweets by right-wing politicians we can find more or less the same words generically referring to politics. As in the tweets from left-wing politicians, they mentioned their opponents a lot more than they mentioned themselves ("sinistra" is the 14th most frequent words, "destra" is only the 205th).
+
+We also notice a great emphasis on terms that describe nationality: the noun "Italia" and its derivate adjectives are among the top words in their tweets. The same goes for the words "famiglia" and "famiglie" (family/families).
+
+## Conclusion
+
+The analyses I performed show a series of differences in the communication of the two political groups.
+
+First of all, the frequency of tweets throughout the year
+shows different patterns for left and right-wing politicians.
+
+Left-wing politicians consistently increased the number of their tweets during the electoral campaign in summer, which is completely understandable, because both traditional and social media play a crucial role in building the image of political parties, and this becomes even more important in the time span leading up to the elections. However, immediately after said elections, there was a major decrease. This is probably due to the fact that they had just lost the elections against right-wing parties, so they had to reorganize internally and dispose a valid strategy for their new role as political opposition. After this period of decrease, their tweets then continued to increase in number.
+
+On the contrary, the frequency of tweets from right-wing politicians did not decrease after the elections: after a consistent increase during the electoral campaign, the curve remained pretty much stable until the end of the year, when it started to increase again. It is plausible that after winning the elections, they continued to communicate on social media in the same way as before, because it was needless to change anything in their strategy.
+
+The frequency of words also shows some interesting differences in the most recurring topics for left and right-wing.
+
+Left-wing politicians seem to have mentioned specific topics more than their opponents, for example Covid and rights. This is unsurprising, because left-wing politicians have always been more sensitive to the pandemic and have insisted on the need to cooperate and make sacrifices for the collective good, that's to say to protect the most vulnerable ones from Covid. In the same way, civil rights are one of the main points of the electoral program of left-wing parties, so it makes sense that they were cited a lot in their tweets.
+
+In the same way, right-wing politicians have discussed more some of the key issues of their political program. For instance, they put a lot of emphasis on the concepts of family: compared to their opponents, right-wing politicians have used much more the terms "famiglia"/"famiglie", and this is probably a reflection of one of their main political ideas, which is the support of the "traditional family", based on the marriage between a man and a woman. It is also worth noting that, in addition to the word "Italia", which has been used a lot by both political groups, right-wing politicians have also made large use of the adjectives "italiano", "italiani" and "italiana", confirming their patriotic ideas, sometimes even resulting in nationalism.
